@@ -134,7 +134,7 @@ else
 	echo " "
 	
 	# Generate random username and password for 100 proxies
-	for i in {1..numofproxy}; do
+	for i in {1..$numofproxy}; do
 		user[$i]=$(openssl rand -base64 8 | tr -dc 'a-zA-Z' | head -c 8)
 		password[$i]=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 12)
 	done
@@ -173,7 +173,7 @@ useradd -M -s /usr/sbin/nologin -p "$(openssl passwd -1 "$passwordnew")" "$usern
 
 # Step 2 — Securing Dante
 # Add 10 random users
-for i in {1..numofproxy}; do
+for i in {1..$numofproxy}; do
 	sudo useradd -r -s /bin/false ${user[$i]}
 	echo "${user[$i]}:${password[$i]}" | sudo chpasswd
 done
@@ -385,7 +385,7 @@ else
 	service sockd start
 
 	# Output proxy information to a file
-	for i in {1..numofproxy}; do
+	for i in {1..$numofproxy}; do
 		echo "$hostname:$port:${user[$i]}:${password[$i]}" >> ~/proxy_info.txt
 	done
 	echo "$hostname:$port:$usernew:$passwordnew" >> ~/proxy_info.txt
