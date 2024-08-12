@@ -58,6 +58,11 @@ if [[ -e /etc/sockd.conf ]]; then
 				echo "Please try again"
 				echo " "
 			done
+			# Check if user name is not empty
+			if [[ -z "$usernew" ]]; then
+				echo "Error: Username cannot be empty."
+				exit 1
+			fi
 			# Creating new proxy user
 			useradd -M -s /usr/sbin/nologin -p "$(openssl passwd -1 "$passwordnew")" "$usernew"
 			echo " "
@@ -191,6 +196,11 @@ else
 
 	# Creating new users for proxy
 	for i in $(seq 1 $numofproxy); do
+		# Check if username is valid
+		if [[ -z "${user[$i]}" ]]; then
+			echo "Error: Generated username is empty. Skipping user $i."
+			continue
+		fi
 		useradd -M -s /usr/sbin/nologin "${user[$i]}"
 		echo "${user[$i]}:${password[$i]}" | chpasswd
 	done
@@ -198,63 +208,29 @@ else
 	# Creating services
 	if [[ "$OStype" = 'deb' ]]; then
 		# Creating sockd daemon for Debian/Ubuntu
-		cat > /etc/init.d/sockd <<-'EOF'
-		#!/usr/bin/env bash
-		### BEGIN INIT INFO
-		# Provides:          sockd
-		# Required-Start:    $remote_fs $syslog
-		# Required-Stop:     $remote_fs $syslog
-		# Default-Start:     2 3 4 5
-		# Default-Stop:      0 1 6
-		# Short-Description: Start the dante SOCKS server.
-		# Description:       SOCKS (v4 and v5) proxy server daemon (sockd).
-		#                    This server allows clients to connect to it and
-		#                    request proxying of TCP or UDP network traffic
-		#                    with extensive configuration possibilities.
-		### END INIT INFO
+		cat > /etc/systemd/system/sockd.service <<-'EOF'
+		[Unit]
+		Description=Dante Socks Proxy v1.4.3
+		After=network.target
 
-		DAEMON=/usr/sbin/sockd
-		DAEMON_ARGS="-D"
-		PIDFILE=/var/run/sockd.pid
-		NAME=sockd
-		CONFFILE=/etc/sockd.conf
+		[Service]
+		Type=forking
+		PIDFile=/var/run/sockd.pid
+		ExecStart=/usr/sbin/sockd -D -f /etc/sockd.conf
+		ExecReload=/bin/kill -HUP $MAINPID
+		KillMode=process
+		Restart=on-failure
 
-		. /lib/lsb/init-functions
-
-		case "$1" in
-		  start)
-		    log_daemon_msg "Starting Dante SOCKS proxy server" "$NAME"
-		    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_ARGS
-		    log_end_msg $?
-		    ;;
-		  stop)
-		    log_daemon_msg "Stopping Dante SOCKS proxy server" "$NAME"
-		    start-stop-daemon --stop --quiet --pidfile $PIDFILE --name $NAME
-		    log_end_msg $?
-		    ;;
-		  restart)
-		    $0 stop
-		    $0 start
-		    ;;
-		  status)
-		    status_of_proc "$DAEMON" "$NAME"
-		    ;;
-		  *)
-		    echo "Usage: $0 {start|stop|restart|status}"
-		    exit 1
-		    ;;
-		esac
-
-		exit 0
+		[Install]
+		WantedBy=multi-user.target
 		EOF
-		# Making sockd service executable
-		chmod +x /etc/init.d/sockd
-		# Updating rc.d
-		update-rc.d sockd defaults
-		# Enabling autostart for sockd daemon
-		update-rc.d sockd enable
+
+		# Restarting systemctl daemon
+		systemctl daemon-reload
+		# Enabling autostart for sockd service
+		systemctl enable sockd
 		# Starting sockd daemon
-		/etc/init.d/sockd start
+		systemctl start sockd
 	else
 		# Creating systemctl service for CentOS
 		cat > /etc/systemd/system/sockd.service <<-'EOF'
@@ -271,20 +247,13 @@ else
 		Restart=on-failure
 
 		[Install]
-		WantedBy=multi-user.target graphical.target
+		WantedBy=multi-user.target
 		EOF
 
 		# Restarting systemctl daemon
 		systemctl daemon-reload
 		# Enabling autostart for sockd service
 		systemctl enable sockd
-		# Adding exceptions for firewalld if running
-		if pgrep firewalld > /dev/null; then
-			firewall-cmd --zone=public --add-port="$port"/tcp
-			firewall-cmd --zone=public --add-port="$port"/udp
-			firewall-cmd --runtime-to-permanent
-			firewall-cmd --reload
-		fi
 		# Starting service
 		systemctl start sockd
 	fi
@@ -293,7 +262,9 @@ else
 	hostname=$(hostname -I | awk '{print $1}')
 	output_file=~/proxy_info.txt
 	for i in $(seq 1 $numofproxy); do
-		echo "$hostname:$port:${user[$i]}:${password[$i]}" >> "$output_file"
+		if [[ -n "${user[$i]}" ]]; then
+			echo "$hostname:$port:${user[$i]}:${password[$i]}" >> "$output_file"
+		fi
 	done
 	cat "$output_file"
 
