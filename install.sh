@@ -27,6 +27,21 @@ else
 	exit 3
 fi
 
+# Function to update the proxy info file
+update_proxy_file() {
+	output_file=~/proxy_info.txt
+	hostname=$(hostname -I | awk '{print $1}')
+	port=$(grep 'internal:' /etc/sockd.conf | awk '{print $4}')
+
+	# Clear the existing file
+	> "$output_file"
+
+	# Add each valid user to the file
+	for user in $(getent passwd | awk -F: '/\/usr\/sbin\/nologin/{print $1}'); do
+		echo "$hostname:$port:$user:$(grep "$user" /etc/shadow | cut -d: -f2)" >> "$output_file"
+	done
+}
+
 # Checking for previous installation with this script
 if [[ -e /etc/sockd.conf ]]; then
     while : ; do
@@ -67,6 +82,8 @@ if [[ -e /etc/sockd.conf ]]; then
 			useradd -M -s /usr/sbin/nologin -p "$(openssl passwd -1 "$passwordnew")" "$usernew"
 			echo " "
 			echo "New user added!"
+			# Update proxy info file
+			update_proxy_file
 			exit
 			;;
 			2)
@@ -76,6 +93,8 @@ if [[ -e /etc/sockd.conf ]]; then
 			if getent passwd "$deluser" > /dev/null 2>&1; then
 			    userdel "$deluser"
 			    echo "User $deluser deleted!"
+			    # Update proxy info file
+			    update_proxy_file
 			else
 			    echo "Cannot find user with this name!"
 			fi
@@ -114,6 +133,8 @@ if [[ -e /etc/sockd.conf ]]; then
 					echo " "
 					echo "Dante socks proxy server deleted!"
 				fi
+				# Remove proxy info file
+				rm -f ~/proxy_info.txt
 			else
 				echo " "
 				echo "Removal process aborted!"
@@ -258,15 +279,8 @@ else
 		systemctl start sockd
 	fi
 
-	# Output proxy information to a file
-	hostname=$(hostname -I | awk '{print $1}')
-	output_file=~/proxy_info.txt
-	for i in $(seq 1 $numofproxy); do
-		if [[ -n "${user[$i]}" ]]; then
-			echo "$hostname:$port:${user[$i]}:${password[$i]}" >> "$output_file"
-		fi
-	done
-	cat "$output_file"
+	# Output proxy information to a file and update
+	update_proxy_file
 
 	# Transfer the file to a remote machine (replace with your own details)
 	remote_user="root"
@@ -278,3 +292,4 @@ else
 	# Print success message
 	echo "All Done and Success by ThienTranJP"
 fi
+
