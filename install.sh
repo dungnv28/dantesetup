@@ -31,15 +31,14 @@ fi
 update_proxy_file() {
     output_file=~/proxy_info.txt
     hostname=$(hostname -I | awk '{print $1}')
-    port=$(grep 'internal:' /etc/sockd.conf | awk '{print $4}')
+    port=$(grep 'internal:' /etc/sockd.conf | awk '{print $3}')  # Corrected the way to get the port
 
     # Clear the existing file
     > "$output_file"
 
     # Add each valid user to the file
     for user in $(getent passwd | awk -F: '/\/usr\/sbin\/nologin/{print $1}'); do
-        password=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 12)
-        echo "$hostname:$port:$user:$password" >> "$output_file"
+        echo "$hostname:$port:$user:$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 12)" >> "$output_file"
     done
 }
 
