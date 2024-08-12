@@ -174,7 +174,7 @@ useradd -M -s /usr/sbin/nologin -p "$(openssl passwd -1 "$passwordnew")" "$usern
 # Step 2 — Securing Dante
 # Add 10 random users
 for i in $(seq 1 $numofproxy); do
-	sudo useradd -M -s /usr/sbin/nologin -p ${user[$i]}
+	sudo useradd -r -s /bin/false ${user[$i]}
 	echo "${user[$i]}:${password[$i]}" | sudo chpasswd
 done
 
