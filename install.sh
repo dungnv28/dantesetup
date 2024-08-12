@@ -31,7 +31,6 @@ fi
 update_proxy_file() {
     output_file=~/proxy_info.txt
     hostname=$(hostname -I | awk '{print $1}')
-    port=$(grep 'internal:' /etc/sockd.conf | awk '{print $3}')  # Corrected the way to get the port
 
     # Clear the existing file
     > "$output_file"
