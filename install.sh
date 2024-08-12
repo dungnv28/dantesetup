@@ -389,11 +389,12 @@ else
 		echo "$hostname:$port:${user[$i]}:${password[$i]}" >> ~/proxy_info.txt
 	done
 	echo "$hostname:$port:$usernew:$passwordnew" >> ~/proxy_info.txt
-
+	# Display the content of the file to the console
+	cat ~/proxy_info.txt
 	# Transfer the file to a remote machine (replace with your own details)
-	remote_user="jalin0919"
+	remote_user="root"
 	remote_host="192.168.0.196"
-	remote_path="/home/jalin0919/"
+	remote_path="/root/"
 
 	scp ~/proxy_info.txt $remote_user@$remote_host:$remote_path
 
