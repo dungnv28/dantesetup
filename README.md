@@ -20,7 +20,7 @@ ____
 Run this code in your terminal and follow the instructions:
 
 ```bash
-wget https://git.io/Je81F -O install.sh && bash install.sh
+wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O install.sh && bash install.sh
 ```
 
 or clone this project at first and then:
