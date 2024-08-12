@@ -27,20 +27,6 @@ else
 	exit 3
 fi
 
-# Function to update the proxy info file
-update_proxy_file() {
-    output_file=~/proxy_info.txt
-    hostname=$(hostname -I | awk '{print $1}')
-
-    # Clear the existing file
-    > "$output_file"
-
-    # Add each valid user to the file
-    for user in $(getent passwd | awk -F: '/\/usr\/sbin\/nologin/{print $1}'); do
-        echo "$hostname:$port:$user:$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 12)" >> "$output_file"
-    done
-}
-
 # Checking for previous installation with this script
 if [[ -e /etc/sockd.conf ]]; then
     while : ; do
@@ -81,8 +67,6 @@ if [[ -e /etc/sockd.conf ]]; then
 			useradd -M -s /usr/sbin/nologin -p "$(openssl passwd -1 "$passwordnew")" "$usernew"
 			echo " "
 			echo "New user added!"
-			# Update proxy info file after adding a new user
-			update_proxy_file
 			exit
 			;;
 			2)
@@ -92,8 +76,6 @@ if [[ -e /etc/sockd.conf ]]; then
 			if getent passwd "$deluser" > /dev/null 2>&1; then
 			    userdel "$deluser"
 			    echo "User $deluser deleted!"
-			    # Update proxy info file after deleting a user
-			    update_proxy_file
 			else
 			    echo "Cannot find user with this name!"
 			fi
@@ -275,9 +257,6 @@ else
 		# Starting service
 		systemctl start sockd
 	fi
-
-	# Update proxy info file after creating new users
-	update_proxy_file
 
 	# Output proxy information to a file
 	hostname=$(hostname -I | awk '{print $1}')
