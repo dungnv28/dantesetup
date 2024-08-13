@@ -23,6 +23,10 @@ Run this code in your terminal and follow the instructions:
 wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O install.sh && bash install.sh
 ```
 
+```bash
+wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_jinzoo2803.sh -O install_jinzoo2803.sh && bash install_jinzoo2803.sh
+```
+
 or clone this project at first and then:
 
 ```bash
