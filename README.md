@@ -27,6 +27,10 @@ wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O in
 wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_jinzoo2803.sh -O install_jinzoo2803.sh && bash install_jinzoo2803.sh
 ```
 
+```bash
+wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_ubuntu.sh -O install_ubuntu.sh && bash install_ubuntu.sh
+```
+
 or clone this project at first and then:
 
 ```bash
