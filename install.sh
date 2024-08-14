@@ -191,7 +191,6 @@ else
 		command: bind connect udpassociate
 		log: error
 		socksmethod: username
-		bandwidth: 500000Kbps
 	}
 	EOF
 
