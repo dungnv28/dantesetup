@@ -1,6 +1,6 @@
 import paramiko
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackContext
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 
 # Telegram bot token
 TOKEN = "7174276062:AAELdJjrf0I7Lk7Bwh0LTgMveeL5SYDaqgY"
@@ -43,89 +43,87 @@ def delete_proxy_user(username):
 ADDING_USER, DELETING_USER = range(2)
 
 # Start command
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Chào mừng bạn đến với Proxy Manager Bot! Bạn có thể sử dụng các lệnh:\n"
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text("Chào mừng bạn đến với Proxy Manager Bot! Bạn có thể sử dụng các lệnh:\n"
                               "/list_proxies - Xem danh sách proxy\n"
                               "/add_proxy - Thêm một proxy user\n"
                               "/delete_proxy - Xóa một proxy user\n"
                               "/clear_proxies - Xóa toàn bộ cấu hình proxy")
 
 # Get proxy list command
-def list_proxies(update: Update, context: CallbackContext):
+async def list_proxies(update: Update, context: CallbackContext):
     proxies = get_proxy_list()
     if proxies:
-        update.message.reply_text("\n".join(proxies))
+        await update.message.reply_text("\n".join(proxies))
     else:
-        update.message.reply_text("Không tìm thấy proxy nào đang hoạt động.")
+        await update.message.reply_text("Không tìm thấy proxy nào đang hoạt động.")
 
 # Add proxy command
-def add_proxy(update: Update, context: CallbackContext):
-    update.message.reply_text("Vui lòng nhập username cho proxy user mới:")
+async def add_proxy(update: Update, context: CallbackContext):
+    await update.message.reply_text("Vui lòng nhập username cho proxy user mới:")
     return ADDING_USER
 
-def adding_user(update: Update, context: CallbackContext):
+async def adding_user(update: Update, context: CallbackContext):
     username = update.message.text
     context.user_data['username'] = username
-    update.message.reply_text("Vui lòng nhập mật khẩu cho proxy user mới:")
+    await update.message.reply_text("Vui lòng nhập mật khẩu cho proxy user mới:")
     return ADDING_USER
 
-def adding_password(update: Update, context: CallbackContext):
+async def adding_password(update: Update, context: CallbackContext):
     password = update.message.text
     username = context.user_data.get('username')
     if username:
         add_proxy_user(username, password)
-        update.message.reply_text(f"Proxy user {username} đã được thêm thành công!")
+        await update.message.reply_text(f"Proxy user {username} đã được thêm thành công!")
     else:
-        update.message.reply_text("Không có username hợp lệ. Quay lại menu chính.")
+        await update.message.reply_text("Không có username hợp lệ. Quay lại menu chính.")
     return ConversationHandler.END
 
 # Delete proxy command
-def delete_proxy(update: Update, context: CallbackContext):
-    update.message.reply_text("Vui lòng nhập username của proxy user cần xóa:")
+async def delete_proxy(update: Update, context: CallbackContext):
+    await update.message.reply_text("Vui lòng nhập username của proxy user cần xóa:")
     return DELETING_USER
 
-def deleting_user(update: Update, context: CallbackContext):
+async def deleting_user(update: Update, context: CallbackContext):
     username = update.message.text
     if username:
         delete_proxy_user(username)
-        update.message.reply_text(f"Proxy user {username} đã được xóa thành công!")
+        await update.message.reply_text(f"Proxy user {username} đã được xóa thành công!")
     else:
-        update.message.reply_text("Không tìm thấy username. Quay lại menu chính.")
+        await update.message.reply_text("Không tìm thấy username. Quay lại menu chính.")
     return ConversationHandler.END
 
 # Clear all proxies command
-def clear_proxies(update: Update, context: CallbackContext):
+async def clear_proxies(update: Update, context: CallbackContext):
     client = ssh_connect()
     client.exec_command("sudo rm -f /etc/sockd.conf")
     client.close()
-    update.message.reply_text("Toàn bộ cấu hình proxy đã được xóa!")
+    await update.message.reply_text("Toàn bộ cấu hình proxy đã được xóa!")
 
 # Back command
-def back(update: Update, context: CallbackContext):
-    update.message.reply_text("Bạn đã quay lại menu chính.")
+async def back(update: Update, context: CallbackContext):
+    await update.message.reply_text("Bạn đã quay lại menu chính.")
     return ConversationHandler.END
 
 # Main function to start the bot
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    application = Application.builder().token(TOKEN).build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('add_proxy', add_proxy), CommandHandler('delete_proxy', delete_proxy)],
         states={
-            ADDING_USER: [MessageHandler(Filters.text & ~Filters.command, adding_user)],
-            DELETING_USER: [MessageHandler(Filters.text & ~Filters.command, deleting_user)],
+            ADDING_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, adding_user)],
+            DELETING_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, deleting_user)],
         },
         fallbacks=[CommandHandler('back', back)]
     )
 
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("list_proxies", list_proxies))
-    dp.add_handler(CommandHandler("clear_proxies", clear_proxies))
-    dp.add_handler(conv_handler)
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("list_proxies", list_proxies))
+    application.add_handler(CommandHandler("clear_proxies", clear_proxies))
+    application.add_handler(conv_handler)
 
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()

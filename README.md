@@ -31,6 +31,10 @@ wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_jinzoo28
 wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_ubuntu.sh -O install_ubuntu.sh && bash install_ubuntu.sh
 ```
 
+```bash
+wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_limit.sh -O install_limit.sh && bash install_limit.sh
+```
+
 or clone this project at first and then:
 
 ```bash
