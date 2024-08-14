@@ -1,0 +1,42 @@
+3. Sử dụng lệnh ip route
+Bạn cũng có thể sử dụng lệnh ip route để tìm interface mạng chính, đặc biệt nếu bạn muốn tìm interface sử dụng cho kết nối mặc định.
+
+ip route show default
+
+Lệnh này sẽ hiển thị dòng như sau:
+
+default via 192.168.1.1 dev eth0
+
+
+Để chạy trực tiếp các lệnh tc để giới hạn băng thông từ dòng lệnh sudo su, bạn có thể thực hiện theo các bước sau:
+
+1. Truy cập vào terminal với quyền root
+Nếu bạn chưa ở quyền root, hãy chuyển sang quyền root bằng lệnh:
+
+bash
+Sao chép mã
+sudo su
+2. Chạy các lệnh tc để giới hạn băng thông
+Sau khi bạn đã chuyển sang quyền root, bạn có thể chạy trực tiếp các lệnh tc dưới đây để thiết lập giới hạn băng thông.
+
+Giả sử $interface là tên của interface mạng mà bạn muốn giới hạn băng thông. Thay thế $interface bằng tên interface thực tế (ví dụ: eth0 hoặc ens33).
+
+# Set up traffic control (tc) for bandwidth limitation
+tc qdisc add dev eth0 root handle 1: htb default 30
+tc class add dev eth0 parent 1: classid 1:1 htb rate 500mbit ceil 500mbit
+tc class add dev eth0 parent 1:1 classid 1:30 htb rate 500mbit ceil 500mbit
+
+# Limit all traffic through eth0 to 500Mbps
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip src 0.0.0.0/0 flowid 1:30
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip dst 0.0.0.0/0 flowid 1:30
+
+
+4 Kiểm tra giới hạn băng thông
+Bạn có thể sử dụng tc để kiểm tra xem các quy tắc băng thông đã được áp dụng chưa:
+
+tc qdisc show dev eth0
+
+#Xóa quy tắc băng thông (nếu cần)
+Nếu bạn muốn xóa giới hạn băng thông đã thiết lập, bạn có thể sử dụng lệnh sau:
+
+tc qdisc del dev eth0 root
