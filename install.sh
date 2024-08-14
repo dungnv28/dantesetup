@@ -191,7 +191,7 @@ else
 		command: bind connect udpassociate
 		log: error
 		socksmethod: username
-		bandwidth: upload 500000Kbps download 500000Kbps
+		bandwidth: bandwidth: upload 100000Kbps download 100000Kbps
 	}
 	EOF
 
