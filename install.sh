@@ -185,7 +185,6 @@ else
 		from: 0.0.0.0/0 to: 0.0.0.0/0
 		log: error
 		socksmethod: username
-		bandwidth: upload 500000Kbps download 500000Kbps
 	}
 	socks pass {
 		from: 0.0.0.0/0 to: 0.0.0.0/0
