@@ -1,14 +1,14 @@
 import paramiko
+import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
-import requests
 
 # Telegram bot token
-TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TOKEN = "7103890647:AAH4hwwHKBuwbY-aDR4lK7KQasWbFixg58E"
 
 # VPS server details
-VPS_USER = "YOUR_VPS_USERNAME"
-VPS_PASSWORD = "YOUR_VPS_PASSWORD"
+VPS_USER = "root"
+VPS_PASSWORD = "28032000Dung"
 
 # Function to get the VPS IP address
 def get_vps_ip():
@@ -82,8 +82,20 @@ async def add_proxy_password(update: Update, context: CallbackContext):
     username = context.user_data.get('username')
 
     client = ssh_connect()
-    command = f"echo -e '1\n{username}\n{password}\n' | bash install.sh"
+    
+    command = "wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O install.sh && bash install.sh"
     stdin, stdout, stderr = client.exec_command(command)
+    
+    stdin.write('1\n')
+    stdin.flush()
+    stdin.write(f"{username}\n")
+    stdin.flush()
+    stdin.write(f"{password}\n")
+    stdin.flush()
+    stdin.write(f"{password}\n")
+    stdin.flush()
+
+    stdout.channel.recv_exit_status()
 
     # Append new proxy to the file
     command = f"echo '{VPS_HOST}:1080:{username}:{password}' >> ~/proxy_info.txt"
@@ -103,8 +115,16 @@ async def delete_proxy_user(update: Update, context: CallbackContext):
     username = update.message.text
 
     client = ssh_connect()
-    command = f"echo -e '2\n{username}\n' | bash install.sh"
+    
+    command = "wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O install.sh && bash install.sh"
     stdin, stdout, stderr = client.exec_command(command)
+    
+    stdin.write('2\n')
+    stdin.flush()
+    stdin.write(f"{username}\n")
+    stdin.flush()
+
+    stdout.channel.recv_exit_status()
 
     # Remove proxy from file
     command = f"sed -i '/{username}/d' ~/proxy_info.txt"
@@ -126,19 +146,14 @@ async def confirm_clearserver(update: Update, context: CallbackContext):
     if confirmation == 'yes':
         client = ssh_connect()
         
-        # Thực thi lệnh trên VPS để gỡ bỏ proxy server
         command = "wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install.sh -O install.sh && bash install.sh"
         stdin, stdout, stderr = client.exec_command(command)
         
-        # Gửi phím '3' để chọn 'Completely remove Dante socks proxy server'
         stdin.write('3\n')
         stdin.flush()
-        
-        # Xác nhận gỡ bỏ proxy server bằng cách gửi 'y'
         stdin.write('y\n')
         stdin.flush()
 
-        # Đợi quá trình hoàn thành
         stdout.channel.recv_exit_status()
         
         await update.message.reply_text("Dante socks proxy server has been successfully removed.")
