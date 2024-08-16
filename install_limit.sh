@@ -279,9 +279,9 @@ else
 	cat "$output_file"
 
 	# Transfer the file to a remote machine (replace with your own details)
-	remote_user="root"
+	remote_user="administrator"
 	remote_host="192.168.0.196"
-	remote_path="/root/"
+	remote_path="/home/administrator/"
 
 	scp "$output_file" "$remote_user@$remote_host:$remote_path"
 
