@@ -258,15 +258,15 @@ else
 		systemctl start sockd
 	fi
 	# Set up traffic control (tc) for bandwidth limitation
-	tc qdisc add dev $interface root handle 1: htb default 30
-	tc class add dev $interface parent 1: classid 1:1 htb rate 500mbit ceil 500mbit
-	tc class add dev $interface parent 1:1 classid 1:30 htb rate 500mbit ceil 500mbit
+	# tc qdisc add dev $interface root handle 1: htb default 30
+	# tc class add dev $interface parent 1: classid 1:1 htb rate 500mbit ceil 500mbit
+	# tc class add dev $interface parent 1:1 classid 1:30 htb rate 500mbit ceil 500mbit
 
 	# Limit all traffic through $interface to 500Mbps
-	tc filter add dev $interface protocol ip parent 1:0 prio 1 u32 match ip src 0.0.0.0/0 flowid 1:30
-	tc filter add dev $interface protocol ip parent 1:0 prio 1 u32 match ip dst 0.0.0.0/0 flowid 1:30
+	# tc filter add dev $interface protocol ip parent 1:0 prio 1 u32 match ip src 0.0.0.0/0 flowid 1:30
+	# tc filter add dev $interface protocol ip parent 1:0 prio 1 u32 match ip dst 0.0.0.0/0 flowid 1:30
 
-	echo "Traffic control applied, limiting to 500Mbps for upload and download"
+	# echo "Traffic control applied, limiting to 500Mbps for upload and download"
 	
 	# Output proxy information to a file
 	hostname=$(hostname -I | awk '{print $1}')
