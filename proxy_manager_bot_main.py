@@ -3,12 +3,12 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 
 # Telegram bot token
-TOKEN = "7174276062:AAELdJjrf0I7Lk7Bwh0LTgMveeL5SYDaqgY"
+TOKEN = "7672784511:AAFzdvkIS9pu1asvzn181y8yQ58aodQzFPw"
 
 # VPS server details
-VPS_HOST = "45.12.134.116"
+VPS_HOST = "103.97.91.54"
 VPS_USER = "root"
-VPS_PASSWORD = "Eqi9KlVA6Mof"
+VPS_PASSWORD = "Admin@123"
 
 # SSH connection setup
 def ssh_connect():
