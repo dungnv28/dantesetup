@@ -4,11 +4,11 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 
 # Telegram bot token
-TOKEN = "7103890647:AAH4hwwHKBuwbY-aDR4lK7KQasWbFixg58E"
+TOKEN = "7672784511:AAFzdvkIS9pu1asvzn181y8yQ58aodQzFPw"
 
 # VPS server details
 VPS_USER = "root"
-VPS_PASSWORD = "28032000Dung"
+VPS_PASSWORD = "Admin@123"
 
 # Function to get the VPS IP address
 def get_vps_ip():
