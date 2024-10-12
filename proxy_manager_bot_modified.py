@@ -8,7 +8,7 @@ TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
 
 # VPS server details
 VPS_USER = "root"
-VPS_PASSWORD = "Admin@123"
+VPS_PASSWORD = "5AvJ*Q9z+5AK"
 
 # Function to get the VPS IP address
 def get_vps_ip():
