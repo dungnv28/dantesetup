@@ -33,8 +33,8 @@ def ssh_connect():
 def setup_bandwidth_limit(client, username):
     limit_bytes = 5 * 1024 * 1024 * 1024  # 5GB in bytes
     command = f"tc qdisc add dev eth0 root handle 1: htb default 30 && "
-    command += f"tc class add dev eth0 parent 1: classid 1:1 htb rate 100mbit ceil 100mbit && "
-    command += f"tc class add dev eth0 parent 1:1 classid 1:{username} htb rate 100mbit ceil 100mbit && "
+    command += f"tc class add dev eth0 parent 1: classid 1:1 htb rate 200mbit ceil 200mbit && "
+    command += f"tc class add dev eth0 parent 1:1 classid 1:{username} htb rate 200mbit ceil 200mbit && "
     command += f"iptables -A OUTPUT -m owner --uid-owner {username} -j ACCEPT && "
     command += f"iptables -t mangle -A OUTPUT -m owner --uid-owner {username} -j MARK --set-mark {username}"
     stdin, stdout, stderr = client.exec_command(command)
