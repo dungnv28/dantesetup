@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
 
 # Telegram bot token
-TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TOKEN = "7563357449:AAHQVWeO8CpS714OFEJ1HTc6HxvGN7Pn4Ts"
 
 # VPS server details
 VPS_USER = "root"
