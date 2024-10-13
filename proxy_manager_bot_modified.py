@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 import paramiko
 import requests
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext, CallbackQueryHandler
 
 # Telegram bot token
-TOKEN = "7563357449:AAHQVWeO8CpS714OFEJ1HTc6HxvGN7Pn4Ts"
+TOKEN = "YOUR_BOT_TOKEN"
 
 # VPS server details
 VPS_USER = "root"
@@ -225,9 +226,68 @@ async def confirm_clearserver(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 # Main function to start the bot
+async def start(update: Update, context: CallbackContext):
+    start_message = (
+        "Chào mừng bạn đến với Proxy Manager Bot!\n\n"
+        "Dưới đây là các lệnh mà bạn có thể sử dụng:\n"
+        "/setupserver - Thiết lập server proxy mới\n"
+        "/list_proxies - Xem danh sách proxy hiện có\n"
+        "/add_proxy - Thêm một proxy user mới\n"
+        "/delete_proxy - Xóa một proxy user\n"
+        "/list_bandwidth - Kiểm tra băng thông còn lại\n"
+        "/clearserver - Xóa toàn bộ cấu hình server proxy\n"
+        "/back - Quay lại menu chính\n\n"
+        "Hãy chọn một lệnh để bắt đầu tương tác với bot!"
+    )
+
+    # Tạo các nút để người dùng lựa chọn
+    keyboard = [
+        [InlineKeyboardButton("Thiết lập server proxy", callback_data='setupserver')],
+        [InlineKeyboardButton("Xem danh sách proxy", callback_data='list_proxies')],
+        [InlineKeyboardButton("Thêm proxy user", callback_data='add_proxy')],
+        [InlineKeyboardButton("Xóa proxy user", callback_data='delete_proxy')],
+        [InlineKeyboardButton("Kiểm tra băng thông", callback_data='list_bandwidth')],
+        [InlineKeyboardButton("Xóa toàn bộ server proxy", callback_data='clearserver')]
+    ]
+
+    # Tạo một đối tượng InlineKeyboardMarkup từ danh sách các nút
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Gửi thông điệp cùng với các nút tương tác
+    await update.message.reply_text(start_message, reply_markup=reply_markup)
+
+# Hàm xử lý khi người dùng bấm vào các nút
+async def button_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    await query.answer()  # Gửi xác nhận rằng bot đã nhận được yêu cầu
+    
+    # Dựa trên callback_data, gọi các hàm tương ứng
+    if query.data == 'setupserver':
+        await setup_server(query, context)
+    elif query.data == 'list_proxies':
+        await list_proxies(query, context)
+    elif query.data == 'add_proxy':
+        await add_proxy(query, context)
+    elif query.data == 'delete_proxy':
+        await delete_proxy(query, context)
+    elif query.data == 'list_bandwidth':
+        await list_bandwidth(query, context)
+    elif query.data == 'clearserver':
+        await clearserver(query, context)
+
+# Cập nhật main để thêm button handler
 def main():
     application = Application.builder().token(TOKEN).build()
 
+    # Thêm các handler cho các lệnh
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("list_proxies", list_proxies))
+    application.add_handler(CommandHandler("list_bandwidth", list_bandwidth))
+    
+    # Thêm handler cho tương tác nút bấm
+    application.add_handler(CallbackQueryHandler(button_handler))
+
+    # Thêm ConversationHandler cho các lệnh cần tương tác nhiều bước
     conv_handler = ConversationHandler(
         entry_points=[
             CommandHandler('setupserver', setup_server),
@@ -246,9 +306,6 @@ def main():
         fallbacks=[CommandHandler('back', lambda u, c: ConversationHandler.END)]
     )
 
-    application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("Welcome!")))
-    application.add_handler(CommandHandler("list_proxies", list_proxies))
-    application.add_handler(CommandHandler("list_bandwidth", list_bandwidth))
     application.add_handler(conv_handler)
 
     application.run_polling()
