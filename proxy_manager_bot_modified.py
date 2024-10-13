@@ -40,7 +40,7 @@ def setup_bandwidth_limit(client, username):
     stdin, stdout, stderr = client.exec_command(command)
     return stdout.read().decode(), stderr.read().decode()
 
-# Function to check if a user has exceeded the 5GB limit
+# Function to monitor bandwidth usage
 def monitor_bandwidth_usage(client, username):
     limit_bytes = 5 * 1024 * 1024 * 1024  # 5GB in bytes
     command = f"iptables -t mangle -L OUTPUT -v -x | grep {username} | awk '{{print $2}}'"
@@ -55,7 +55,7 @@ def monitor_bandwidth_usage(client, username):
         remaining_gb = remaining_bytes / (1024 * 1024 * 1024)
         return f"User {username} has {remaining_gb:.2f} GB remaining."
 
-# Function to disconnect a user if they exceed the limit
+# Function to disconnect a user
 def disconnect_user(client, username):
     command = f"iptables -D OUTPUT -m owner --uid-owner {username} -j ACCEPT"
     client.exec_command(command)
@@ -178,6 +178,52 @@ async def add_proxy_password(update: Update, context: CallbackContext):
     
     return ConversationHandler.END
 
+# Function to delete a proxy
+async def delete_proxy(update: Update, context: CallbackContext):
+    await update.message.reply_text("Please enter the username of the proxy to delete:")
+    return 5
+
+async def delete_proxy_user(update: Update, context: CallbackContext):
+    username = update.message.text
+
+    client = ssh_connect()
+    if client:
+        # Remove user from system
+        command = f"userdel {username} && sed -i '/{username}/d' ~/proxy_info.txt"
+        stdin, stdout, stderr = client.exec_command(command)
+        
+        client.close()
+        
+        await update.message.reply_text(f"Proxy user {username} deleted successfully!")
+    else:
+        await update.message.reply_text("Failed to connect to VPS.")
+    
+    return ConversationHandler.END
+
+# Function to clear the server
+async def clearserver(update: Update, context: CallbackContext):
+    await update.message.reply_text("Are you sure you want to clear all proxies? Type 'yes' to confirm:")
+    return 6
+
+async def confirm_clearserver(update: Update, context: CallbackContext):
+    confirmation = update.message.text.lower()
+    
+    if confirmation == 'yes':
+        client = ssh_connect()
+        if client:
+            # Remove all proxy users and clear proxy_info.txt
+            command = "cat ~/proxy_info.txt | awk -F: '{print $3}' | xargs -I {} userdel {} && rm ~/proxy_info.txt"
+            client.exec_command(command)
+            client.close()
+
+            await update.message.reply_text("All proxies have been cleared from the server.")
+        else:
+            await update.message.reply_text("Failed to connect to VPS.")
+    else:
+        await update.message.reply_text("Operation cancelled.")
+    
+    return ConversationHandler.END
+
 # Main function to start the bot
 def main():
     application = Application.builder().token(TOKEN).build()
@@ -200,7 +246,7 @@ def main():
         fallbacks=[CommandHandler('back', lambda u, c: ConversationHandler.END)]
     )
 
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("Welcome!")))
     application.add_handler(CommandHandler("list_proxies", list_proxies))
     application.add_handler(CommandHandler("list_bandwidth", list_bandwidth))
     application.add_handler(conv_handler)
