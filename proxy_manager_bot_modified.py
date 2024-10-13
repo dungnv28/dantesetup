@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackContext, CallbackQueryHandler
 
 # Telegram bot token
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "7563357449:AAHQVWeO8CpS714OFEJ1HTc6HxvGN7Pn4Ts"
 
 # VPS server details
 VPS_USER = "root"
