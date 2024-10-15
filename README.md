@@ -34,25 +34,6 @@ wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_ubuntu.s
 ```bash
 wget https://raw.githubusercontent.com/dungnv28/dantesetup/main/install_limit.sh -O install_limit.sh && bash install_limit.sh
 ```
-
-or clone this project at first and then:
-
-```bash
-cd dante-proxy-server && bash install.sh
-```
-
-### Additional options
-
-You can run this script again to:
-
- 1. Add new user for proxy
- 2. Remove an existing user
- 3. Remove Dante socks proxy server
-
-```bash
-bash install.sh
-```
-
 ____
 
 ## Useful tips and tricks
@@ -74,3 +55,214 @@ Port, interface, auth metod, ipv4\ipv6 support and other cool options contains h
 ```bash
 /etc/sockd.conf
 ```
+## Dưới đây là quy trình cài đặt con bot Telegram trên VPS Ubuntu Digital, với file Python được đặt tại /root và cấu hình để nó chạy như một service khởi động cùng hệ thống:
+
+**1\. Cập nhật hệ thống**
+
+Trước khi bắt đầu, hãy đảm bảo hệ thống của bạn được cập nhật:
+
+bash
+
+Sao chép mã
+
+sudo apt update && sudo apt upgrade -y
+
+**2\. Cài đặt Python và pip**
+
+Cài đặt Python 3 và các công cụ cần thiết:
+
+bash
+
+Sao chép mã
+
+sudo apt install python3 python3-pip -y
+
+**3\. Tạo và cài đặt môi trường ảo (Virtual Environment)**
+
+Tạo một môi trường ảo để cài đặt các gói Python mà không ảnh hưởng đến hệ thống chính:
+
+bash
+
+Sao chép mã
+
+sudo apt install python3-venv -y
+
+python3 -m venv /root/proxy_env
+
+source /root/proxy_env/bin/activate
+
+pip3 install python-telegram-bot
+
+**4\. Cài đặt các thư viện cần thiết**
+
+Cài đặt các gói Python cần thiết cho bot:
+
+bash
+
+Sao chép mã
+
+pip install paramiko python-telegram-bot requests
+
+**5\. Tạo file Python cho bot**
+
+Tạo file Python cho bot trong thư mục /root:
+
+bash
+
+Sao chép mã
+
+nano /root/proxy_manager_bot.py
+
+Dán mã nguồn hoàn chỉnh của bot vào file này, sau đó lưu và thoát (Ctrl + O để lưu, Ctrl + X để thoát).
+
+**6\. Cấu hình bot thành service**
+
+Tạo một service để bot chạy cùng hệ thống:
+
+bash
+
+Sao chép mã
+
+sudo nano /etc/systemd/system/proxy_manager_bot.service
+
+Nội dung của file service như sau:
+
+ini
+
+Sao chép mã
+
+\[Unit\]
+
+Description=Proxy Manager Bot
+
+After=network.target
+
+\[Service\]
+
+ExecStart=/root/proxy_env/bin/python3 /root/proxy_manager_bot.py
+
+WorkingDirectory=/root
+
+Restart=always
+
+User=root
+
+\[Install\]
+
+WantedBy=multi-user.target  
+**  
+ver2  
+**
+
+\[Unit\]
+
+Description=Proxy Manager Bot
+
+After=network.target
+
+\[Service\]
+
+ExecStart=/root/proxy_env/bin/python3 /root/proxy_manager_bot.py
+
+WorkingDirectory=/root
+
+Restart=always
+
+User=root
+
+Environment="PYTHONUNBUFFERED=1"
+
+\[Install\]
+
+WantedBy=multi-user.target
+
+**_SSH Key_**_: Nếu bạn muốn root sử dụng SSH key từ /home/administrator/id_rsa, hãy đảm bảo root có quyền đọc. Nếu không, bạn nên sao chép key vào thư mục /root để tránh các vấn đề về quyền truy cập._
+
+_bash_
+
+_Sao chép mã_
+
+sudo cp /home/administrator/id_rsa /root/
+
+sudo chmod 600 /root/id_rsa
+
+<br/>Nếu bạn đang sử dụng một môi trường ảo, hãy chắc chắn rằng bạn đã kích hoạt nó bằng cách:  
+source /root/proxy_env/bin/activate
+
+pip3 install paramiko
+
+**7\. Kích hoạt và khởi động service**
+
+Tải lại daemon systemd, kích hoạt và khởi động service:
+
+bash
+
+Sao chép mã
+
+source /root/proxy_env/bin/activate
+
+sudo systemctl daemon-reload
+
+sudo systemctl enable proxy_manager_bot.service
+
+sudo systemctl start proxy_manager_bot.service
+
+**8\. Kiểm tra trạng thái service**
+
+Kiểm tra xem bot đã chạy hay chưa:
+
+bash
+
+Sao chép mã
+
+sudo systemctl status proxy_manager_bot.service
+
+Nếu mọi thứ được cài đặt đúng, bạn sẽ thấy trạng thái của bot là "active (running)".
+
+**9\. Quản lý service**
+
+- **Khởi động lại bot:**
+
+bash
+
+Sao chép mã
+
+sudo systemctl restart proxy_manager_bot.service
+
+- **Dừng bot:**
+
+bash
+
+Sao chép mã
+
+sudo systemctl stop proxy_manager_bot.service
+
+- **Kiểm tra nhật ký (log) của bot:**
+
+bash
+
+Sao chép mã
+
+sudo journalctl -u proxy_manager_bot.service -f
+
+**10\. Khởi động lại VPS để kiểm tra**
+
+Khởi động lại VPS để đảm bảo bot chạy tự động khi hệ thống khởi động lại:
+
+bash
+
+Sao chép mã
+
+sudo reboot
+
+**11\. Xác nhận bot hoạt động sau khi khởi động lại**
+
+Sau khi VPS khởi động lại, hãy kiểm tra xem bot có hoạt động không:
+
+bash
+
+Sao chép mã
+
+sudo systemctl status proxy_manager_bot.service
+
+Với các bước trên, bot Telegram sẽ được cài đặt trên VPS Ubuntu và hoạt động như một service, tự động khởi động cùng hệ thống. Nếu bạn gặp bất kỳ vấn đề nào hoặc cần thêm hỗ trợ, hãy cho tôi biết!
